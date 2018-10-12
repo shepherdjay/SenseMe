@@ -313,7 +313,7 @@ class SenseMe:
             # TODO: this shouldn't return data OR False, handle this better
             sock.close()
             LOGGER.info(str(status))
-            match_obj = re.match("\(.*;([^;]+)\)", status)
+            match_obj = re.match(r"\(.*;([^;]+)\)", status)
             if match_obj:
                 return match_obj.group(1)
             else:
@@ -600,11 +600,9 @@ def discover(devices_to_find=3, time_to_wait=5):
 def decode_discovery(message: Tuple[bytes, Tuple[str, str]]) -> Tuple:
     """ Takes a message in the return format of socket.recvfrom and returns decoded SenseMe discovery information """
     message_decoded = message[0].decode("utf-8")
-    res = re.match("\((.*);DEVICE;ID;(.*);(.*),(.*)\)", message_decoded)
-    # TODO: Parse this properly rather than regex
-    name = res.group(1)
-    mac = res.group(2)
-    model = res.group(3)
-    series = res.group(4)
+    message_items = message_decoded.strip('()').split(';')
+    name = message_items[0]
+    mac = message_items[3]
+    model, series = message_items[4].split(',')
     ip = message[1][0]
     return name, mac, model, series, ip
